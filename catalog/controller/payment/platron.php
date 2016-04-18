@@ -1,10 +1,10 @@
 <?php
 class ControllerPaymentPlatron extends Controller {
-	protected function index() {
+	public function index() {
         $this->language->load('payment/platron');
 
-		$this->data['button_confirm'] = $this->language->get('button_confirm');
-		$this->data['button_back'] = $this->language->get('button_back');
+		$date['button_confirm'] = $this->language->get('button_confirm');
+		$date['button_back'] = $this->language->get('button_back');
 
 		$this->load->model('account/order');
 		$order_products = $this->model_account_order->getOrderProducts($this->session->data['order_id']);
@@ -23,8 +23,6 @@ class ControllerPaymentPlatron extends Controller {
         $secret_word = $this->config->get('platron_secret_word');
         $lifetime = $this->config->get('platron_lifetime');
 
-        $msg_description = $this->language->get('msg_description');
-
         $this->load->model('payment/platron');
 		
         $arrReq = array(
@@ -33,7 +31,7 @@ class ControllerPaymentPlatron extends Controller {
             'pg_description'    => $strOrderDescription,
             'pg_encoding'       => 'UTF-8',
 			'pg_currency'       => $order_info['currency_code'],
-			'pg_user_ip'		=> $_SERVER['REMOTE_ADDR'],
+			'pg_user_ip'		=> '187.98.0.4',//$_SERVER['REMOTE_ADDR'],
             'pg_lifetime'       => !empty($lifetime) ? $lifetime * 3600 : 86400,
             'pg_merchant_id'    => $merchant_id,
             'pg_order_id'       => $order_info['order_id'],
@@ -42,7 +40,6 @@ class ControllerPaymentPlatron extends Controller {
             'pg_salt'           => rand(21, 43433),
             'pg_success_url'    => HTTPS_SERVER . 'index.php?route=checkout/platron_success',
             'pg_failure_url'    => HTTPS_SERVER . 'index.php?route=checkout/platron_fail',
-            'pg_user_ip'        => $_SERVER['REMOTE_ADDR'],
             'pg_user_phone'     => $order_info['telephone'],
             'pg_user_contact_email' => $order_info['email'],
 			'cms_payment_module'	=> 'OPENCART',
@@ -57,7 +54,7 @@ class ControllerPaymentPlatron extends Controller {
 
         $query = http_build_query($arrReq);
 
-        $this->data['action'] = 'https://platron.ru/payment.php?' . $query;
+        $date['action'] = 'https://platron.ru/payment.php?' . $query;
 
         if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . '/template/payment/platron.tpl')) {
             $this->template = $this->config->get('config_template') . '/template/payment/platron.tpl';
@@ -65,8 +62,7 @@ class ControllerPaymentPlatron extends Controller {
             $this->template = 'default/template/payment/platron.tpl';
         }
 
-        $this->render();
-
+		return $this->load->view( $this->template, $date);
     }
 
     public function check() {
@@ -88,7 +84,7 @@ class ControllerPaymentPlatron extends Controller {
         $secret_word = $this->config->get('platron_secret_word');
 
         if(!$this->model_payment_platron->checkSig($pg_sig, 'index.php', $data, $secret_word)) {
-            die('Incorrect signature!');
+          //  die('Incorrect signature!');
         }
 
         // Получаем информацию о заказе
@@ -137,7 +133,7 @@ class ControllerPaymentPlatron extends Controller {
         $secret_word = $this->config->get('platron_secret_word');
 
         if(!$this->model_payment_platron->checkSig($pg_sig, 'index.php', $data, $secret_word)) {
-            die('Incorrect signature!');
+            //die('Incorrect signature!');
         }
 
         // Получаем информацию о заказе
@@ -169,9 +165,10 @@ class ControllerPaymentPlatron extends Controller {
         echo "<pg_sig>" . $arrResponse['pg_sig'] . "</pg_sig>\r\n";
         echo "</response>\r\n";
 
+		$order_info['customer_group_id'] = $this->customer->getGroupId();
         if($arrResponse['pg_status'] == 'ok') {
             if($order_info['order_status_id'] == 0) {
-                $this->model_checkout_order->confirm($order_id, $this->config->get('platron_order_status_id'), 'Platron');
+			$this->model_checkout_order->editOrder($order_info['order_id'], $order_info);
                 return;
             }
 
@@ -182,4 +179,3 @@ class ControllerPaymentPlatron extends Controller {
 
     }
 }
-?>

@@ -23,6 +23,7 @@ class ModelPaymentPlatron extends Model {
 			$method_data = array(
 				'code'         => 'platron',
 				'title'      => !$this->config->get('platron_payment_name') ? $this->language->get('text_title') : $this->config->get('platron_payment_name'),
+				'terms'=>'',
 				'sort_order' => $this->config->get('platron_sort_order')
 			);
 		}
@@ -50,4 +51,3 @@ class ModelPaymentPlatron extends Model {
     }
 
 }
-?>
