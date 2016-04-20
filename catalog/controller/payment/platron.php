@@ -84,7 +84,7 @@ class ControllerPaymentPlatron extends Controller {
         $secret_word = $this->config->get('platron_secret_word');
 
         if(!$this->model_payment_platron->checkSig($pg_sig, 'index.php', $data, $secret_word)) {
-          //  die('Incorrect signature!');
+			die('Incorrect signature!');
         }
 
         // Получаем информацию о заказе
@@ -133,7 +133,7 @@ class ControllerPaymentPlatron extends Controller {
         $secret_word = $this->config->get('platron_secret_word');
 
         if(!$this->model_payment_platron->checkSig($pg_sig, 'index.php', $data, $secret_word)) {
-            //die('Incorrect signature!');
+            die('Incorrect signature!');
         }
 
         // Получаем информацию о заказе
