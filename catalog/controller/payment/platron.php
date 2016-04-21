@@ -167,13 +167,14 @@ class ControllerPaymentPlatron extends Controller {
 
 		$order_info['customer_group_id'] = $this->customer->getGroupId();
         if($arrResponse['pg_status'] == 'ok') {
-            if($order_info['order_status_id'] == 0) {
-			$this->model_checkout_order->editOrder($order_info['order_id'], $order_info);
-                return;
-            }
+			$this->model_checkout_order->addOrderHistory($order_id, $this->config->get('platron_order_status_id'), 'Platron', TRUE);
+            // if($order_info['order_status_id'] == 0) {
+			// $this->model_checkout_order->editOrder($order_info['order_id'], $order_info);
+                // return;
+            // }
 
-            if($order_info['order_status_id'] != $this->config->get('platron_order_status_id'))
-                $this->model_checkout_order->update($order_id, $this->config->get('platron_order_status_id'), 'Platron', TRUE);
+            // if($order_info['order_status_id'] != $this->config->get('platron_order_status_id'))
+                // $this->model_checkout_order->addOrderHistory($order_id, $this->config->get('platron_order_status_id'), 'Platron', TRUE);
 
         }
 

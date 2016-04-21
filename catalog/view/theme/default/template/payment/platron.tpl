@@ -2,5 +2,7 @@
 
 </form>
 <div class="buttons">
-    <div class="right"><a onclick="$('#payment').submit();" class="button"><span><?php echo $button_confirm; ?></span></a></div>
+    <div class="pull-right">
+	<input type="button" onclick="$('#payment').submit();" value="<?php echo $button_confirm; ?>" id="button-confirm" class="btn btn-primary" data-loading-text="<?php echo $text_loading; ?>" />
+	</div>
 </div>
