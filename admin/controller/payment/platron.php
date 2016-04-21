@@ -14,7 +14,7 @@ class ControllerPaymentPlatron extends Controller {
 			$this->load->model('setting/setting');
 
 			$this->model_setting_setting->editSetting('platron', $this->request->post);
-			//var_dump($this->session);die();
+			
 			$this->session->data['success'] = $this->language->get('text_success');
 			
 			$this->response->redirect(HTTPS_SERVER . 'index.php?route=payment/platron&token=' . $this->session->data['token']);
@@ -181,7 +181,6 @@ class ControllerPaymentPlatron extends Controller {
 		$date['footer'] = $this->load->controller('common/footer');
 
 		$this->response->setOutput($this->load->view($this->template, $date));
-		//$this->response->setOutput($this->render(TRUE), $this->config->get('config_compression'));
 	}
 
 	private function validate() {
