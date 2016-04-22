@@ -108,6 +108,21 @@
      </div>
 	 <div class="form-group"></div>
 	 <div class="form-group">
+            <label class="col-sm-2 control-label"><?php echo $entry_order_status_fail; ?></label>
+            <div class="col-sm-10">
+              <select name="platron_order_status_id_fail" id="input-order-status_fail" class="form-control">
+				   <?php foreach ($order_statuses_fail as $order_status) { ?>
+					<?php if ($order_status['order_status_id'] == $platron_order_status_id_fail) { ?>
+					<option value="<?php echo $order_status['order_status_id']; ?>" selected="selected"><?php echo $order_status['name']; ?></option>
+					<?php } else { ?>
+					<option value="<?php echo $order_status['order_status_id']; ?>"><?php echo $order_status['name']; ?></option>
+					<?php } ?>
+					<?php } ?>
+				  </select>
+            </div>				  
+     </div>
+	 <div class="form-group"></div>
+	 <div class="form-group">
             <label class="col-sm-2 control-label"><?php echo $entry_status; ?></label>
             <div class="col-sm-10">
               <select name="platron_status" id="input-order-status" class="form-control">

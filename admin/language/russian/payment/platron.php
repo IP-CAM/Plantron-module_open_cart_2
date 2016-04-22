@@ -15,6 +15,8 @@ $_['entry_secret_word']  = 'Секретный ключ:';
 $_['entry_test']         = 'Режим отладки:';
 $_['entry_lifetime']     = 'Время жизни счета (в часах): <br /><span style="color: #727272;">По умолчанию: 24ч</span> ';
 $_['entry_order_status'] = 'Статус заказа после оплаты:';
+$_['entry_order_status_fail'] = 'Статус заказа в случае отказа:';
+
 $_['entry_status']       = 'Статус:';
 $_['entry_sort_order']   = 'Порядок сортировки:';
 

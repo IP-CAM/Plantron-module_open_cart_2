@@ -14,7 +14,6 @@ class ControllerPaymentPlatron extends Controller {
 			$this->load->model('setting/setting');
 
 			$this->model_setting_setting->editSetting('platron', $this->request->post);
-			
 			$this->session->data['success'] = $this->language->get('text_success');
 			
 			$this->response->redirect(HTTPS_SERVER . 'index.php?route=payment/platron&token=' . $this->session->data['token']);
@@ -43,6 +42,7 @@ class ControllerPaymentPlatron extends Controller {
 		$date['entry_test'] = $this->language->get('entry_test');
 
 		$date['entry_order_status'] = $this->language->get('entry_order_status');
+		$date['entry_order_status_fail'] = $this->language->get('entry_order_status_fail');
 		$date['entry_geo_zone'] = $this->language->get('entry_geo_zone');
 		$date['entry_status'] = $this->language->get('entry_status');
 		$date['entry_sort_order'] = $this->language->get('entry_sort_order');
@@ -143,11 +143,18 @@ class ControllerPaymentPlatron extends Controller {
 		} else {
 			$date['platron_order_status_id'] = $this->config->get('platron_order_status_id');
 		}
+		
+		if (isset($this->request->post['platron_order_status_id_fail'])) {
+			$date['platron_order_status_id_fail'] = $this->request->post['platron_order_status_id_fail'];
+		} else {
+			$date['platron_order_status_id_fail'] = $this->config->get('platron_order_status_id_fail');
+		}
 
 		$this->load->model('localisation/order_status');
 
 		$date['order_statuses'] = $this->model_localisation_order_status->getOrderStatuses();
-
+		$date['order_statuses_fail'] = $this->model_localisation_order_status->getOrderStatuses();
+		
 		if (isset($this->request->post['platron_geo_zone_id'])) {
 			$date['platron_geo_zone_id'] = $this->request->post['platron_geo_zone_id'];
 		} else {
