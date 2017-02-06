@@ -15,7 +15,7 @@ class ControllerExtensionPaymentPlatron extends Controller {
 			$strOrderDescription .= @$product["name"] . " " . @$product["model"] . "*" . @$product["quantity"] . ";";
 		}
 
-		$this->load->model('payment/platron');
+		$this->load->model('extension/payment/platron');
 		$this->load->model('checkout/order');
 		$order_info = $this->model_checkout_order->getOrder($this->session->data['order_id']);
 
@@ -25,11 +25,9 @@ class ControllerExtensionPaymentPlatron extends Controller {
 		$secret_word = $this->config->get('platron_secret_word');
 		$lifetime = $this->config->get('platron_lifetime');
 
-		$this->load->model('payment/platron');
-
 		$arrReq = array(
 			'pg_amount' => (int) $order_info['total'],
-			'pg_check_url' => HTTPS_SERVER . 'index.php?route=payment/platron/check',
+			'pg_check_url' => $this->url->link('extension/payment/platron/check'),
 			'pg_description' => $strOrderDescription,
 			'pg_encoding' => 'UTF-8',
 			'pg_currency' => $order_info['currency_code'],
@@ -37,11 +35,11 @@ class ControllerExtensionPaymentPlatron extends Controller {
 			'pg_lifetime' => !empty($lifetime) ? $lifetime * 3600 : 86400,
 			'pg_merchant_id' => $merchant_id,
 			'pg_order_id' => $order_info['order_id'],
-			'pg_result_url' => HTTPS_SERVER . 'index.php?route=payment/platron/callback',
+			'pg_result_url' => $this->url->link('extension/payment/platron/callback'),
 			'pg_request_method' => 'POST',
 			'pg_salt' => rand(21, 43433),
-			'pg_success_url' => HTTPS_SERVER . 'index.php?route=checkout/platron_success',
-			'pg_failure_url' => HTTPS_SERVER . 'index.php?route=checkout/platron_fail',
+			'pg_success_url' => $this->url->link('checkout/success'),
+			'pg_failure_url' => $this->url->link('checkout/failure'),
 			'pg_user_phone' => $order_info['telephone'],
 			'pg_user_contact_email' => $order_info['email'],
 			'cms_payment_module' => 'OPENCART',
@@ -52,26 +50,20 @@ class ControllerExtensionPaymentPlatron extends Controller {
 			unset($arrReq['pg_currency']);
 		}
 
-		$arrReq['pg_sig'] = $this->model_payment_platron->make('payment.php', $arrReq, $secret_word);
+		$arrReq['pg_sig'] = $this->model_extension_payment_platron->make('payment.php', $arrReq, $secret_word);
 
 		$query = http_build_query($arrReq);
 
 		$date['action'] = 'https://platron.ru/payment.php?' . $query;
 
-		if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . '/template/payment/platron.tpl')) {
-			$this->template = $this->config->get('config_template') . '/template/payment/platron.tpl';
-		} else {
-			$this->template = 'default/template/payment/platron.tpl';
-		}
-
-		return $this->load->view($this->template, $date);
+		return $this->load->view('extension/payment/platron', $date);
 	}
 
 	public function check() {
 
 		$this->language->load('payment/platron');
 		$this->load->model('checkout/order');
-		$this->load->model('payment/platron');
+		$this->load->model('extension/payment/platron');
 
 		$arrResponse = array();
 
@@ -85,7 +77,7 @@ class ControllerExtensionPaymentPlatron extends Controller {
 
 		$secret_word = $this->config->get('platron_secret_word');
 
-		if (!$this->model_payment_platron->checkSig($pg_sig, 'index.php', $data, $secret_word)) {
+		if (!$this->model_extension_payment_platron->checkSig($pg_sig, 'index.php', $data, $secret_word)) {
 			die('Incorrect signature!');
 		}
 
@@ -103,7 +95,7 @@ class ControllerExtensionPaymentPlatron extends Controller {
 			$arrResponse['pg_description'] = $this->language->get('err_order_not_found');
 		}
 
-		$arrResponse['pg_sig'] = $this->model_payment_platron->make('index.php', $arrResponse, $secret_word);
+		$arrResponse['pg_sig'] = $this->model_extension_payment_platron->make('index.php', $arrResponse, $secret_word);
 
 		header('Content-type: text/xml');
 		echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n";
@@ -118,7 +110,7 @@ class ControllerExtensionPaymentPlatron extends Controller {
 	public function callback() {
 
 		$this->language->load('payment/platron');
-		$this->load->model('payment/platron');
+		$this->load->model('extension/payment/platron');
 		$this->load->model('checkout/order');
 
 		$arrResponse = array();
@@ -133,7 +125,7 @@ class ControllerExtensionPaymentPlatron extends Controller {
 
 		$secret_word = $this->config->get('platron_secret_word');
 
-		if (!$this->model_payment_platron->checkSig($pg_sig, 'index.php', $data, $secret_word)) {
+		if (!$this->model_extension_payment_platron->checkSig($pg_sig, 'index.php', $data, $secret_word)) {
 			die('Incorrect signature!');
 		}
 
@@ -154,7 +146,7 @@ class ControllerExtensionPaymentPlatron extends Controller {
 			$arrResponse['pg_error_description'] = $this->language->get('err_order_not_found');
 		}
 
-		$arrResponse['pg_sig'] = $this->model_payment_platron->make('index.php', $arrResponse, $secret_word);
+		$arrResponse['pg_sig'] = $this->model_extension_payment_platron->make('index.php', $arrResponse, $secret_word);
 
 		header('Content-type: text/xml');
 		echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n";
