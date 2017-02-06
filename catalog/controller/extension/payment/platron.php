@@ -1,6 +1,6 @@
 <?php
 
-class ControllerPaymentPlatron extends Controller {
+class ControllerExtensionPaymentPlatron extends Controller {
 
 	public function index() {
 		$this->language->load('payment/platron');

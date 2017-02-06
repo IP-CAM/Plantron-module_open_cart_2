@@ -1,5 +1,5 @@
 <?php
-class ControllerPaymentPlatron extends Controller {
+class ControllerExtensionPaymentPlatron extends Controller {
 	private $error = array();
 
 	public function index() {

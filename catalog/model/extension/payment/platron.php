@@ -1,5 +1,5 @@
 <?php
-class ModelPaymentPlatron extends Model {
+class ModelExtensionPaymentPlatron extends Model {
 	public function getMethod($address) {
 		$this->load->language('payment/platron');
 
