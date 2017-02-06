@@ -59,6 +59,14 @@ class ControllerExtensionPaymentPlatron extends Controller {
 		return $this->load->view('extension/payment/platron', $date);
 	}
 
+	public function confirm() {
+		if ($this->session->data['payment_method']['code'] == 'platron') {
+			$this->load->model('checkout/order');
+
+			$this->model_checkout_order->addOrderHistory($this->session->data['order_id'], $this->config->get('config_order_status_id'));
+		}
+	}
+
 	public function check() {
 
 		$this->language->load('payment/platron');
