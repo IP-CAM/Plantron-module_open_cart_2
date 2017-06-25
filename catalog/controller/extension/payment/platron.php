@@ -20,14 +20,33 @@ class ControllerExtensionPaymentPlatron extends Controller {
 		$order_products = $this->model_account_order->getOrderProducts($this->session->data['order_id']);
 
 		$product_descriptions = array();
+		$ofdReceiptItems = array();
 		foreach ($order_products as $product) {
 			$product_descriptions[] = @$product["name"] . " " . @$product["model"] . " * " . @$product["quantity"];
+
+			$ofdReceiptItem = new OfdReceiptItem();
+			$ofdReceiptItem->label = substr(@$product["name"], 0, 128);
+			$ofdReceiptItem->amount = @$product["total"];
+			$ofdReceiptItem->price = @$product["price"];
+			$ofdReceiptItem->quantity = @$product["quantity"];
+			$ofdReceiptItem->vat = $this->config->get('platron_ofd_vat');
+			$ofdReceiptItems[] = $ofdReceiptItem;
 		}
+
+		if (isset($this->session->data['shipping_method']['cost']) && $this->session->data['shipping_method']['cost'] > 0) {
+			$ofdReceiptItem = new OfdReceiptItem();
+			$ofdReceiptItem->label = 'Доставка';
+			$ofdReceiptItem->amount = $this->session->data['shipping_method']['cost'];
+			$ofdReceiptItem->price = $this->session->data['shipping_method']['cost'];
+			$ofdReceiptItem->quantity = 1;
+			$ofdReceiptItem->vat = 18;
+			$ofdReceiptItems[] = $ofdReceiptItem;
+		}
+
 		$order_description = implode(';', $product_descriptions);
 
 		$this->load->model('checkout/order');
 		$order_info = $this->model_checkout_order->getOrder($this->session->data['order_id']);
-
 		$merchant_id = $this->config->get('platron_merchant_id');
 		$secret_word = $this->config->get('platron_secret_word');
 		$lifetime = $this->config->get('platron_lifetime');
@@ -77,6 +96,32 @@ class ControllerExtensionPaymentPlatron extends Controller {
 			$this->session->data['error'] = $this->language->get('payment_failed');
 			$this->log->write('Platron init_payment error: ' . $init_payment_response->pg_error_description);
 			$this->response->redirect($this->url->link('checkout/checkout', '', true));
+		}
+
+		if ($this->config->get('platron_ofd_send_receipt') == 1) {
+			$ofdReceiptRequest = new OfdReceiptRequest($merchant_id, $init_payment_response->pg_payment_id);
+			$ofdReceiptRequest->items = $ofdReceiptItems;
+			$ofdReceiptRequest->prepare();
+			$ofdReceiptRequest->sign($secret_word);
+
+			$receipt_response = $this->platronClient->doRequest('https://www.platron.ru/receipt.php', array('pg_xml' => $ofdReceiptRequest->asXml()));
+
+			if (!$receipt_response) {
+				$this->session->data['error'] = $this->language->get('payment_failed');
+				$this->response->redirect($this->url->link('checkout/checkout', '', true));
+			}
+
+			if (!PlatronSignature::checkXML('receipt.php', $receipt_response, $secret_word)) {
+				$this->session->data['error'] = $this->language->get('payment_failed');
+				$this->log->write('Platron receipt response signature');
+				$this->response->redirect($this->url->link('checkout/checkout', '', true));
+			}
+
+			if ($init_payment_response->pg_status == 'error') {
+				$this->session->data['error'] = $this->language->get('payment_failed');
+				$this->log->write('Platron receipt error: ' . $init_payment_response->pg_error_description);
+				$this->response->redirect($this->url->link('checkout/checkout', '', true));
+			}
 		}
 
 		if ($init_payment_response->pg_status == 'ok') {
