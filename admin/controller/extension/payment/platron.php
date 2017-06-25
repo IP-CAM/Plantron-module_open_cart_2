@@ -34,6 +34,8 @@ class ControllerExtensionPaymentPlatron extends Controller {
 		$data['entry_merchant_id'] = $this->language->get('entry_merchant_id');
 		$data['entry_secret_word'] = $this->language->get('entry_secret_word');
         $data['entry_lifetime'] = $this->language->get('entry_lifetime');
+        $data['entry_ofd_send_receipt'] = $this->language->get('entry_ofd_send_receipt');
+        $data['entry_ofd_vat'] = $this->language->get('entry_ofd_vat');
 
 		// URL
 		$data['copy_result_url'] 	= $this->url->link('extension/payment/platron/callback');
@@ -42,6 +44,15 @@ class ControllerExtensionPaymentPlatron extends Controller {
 
 		// TEST MODE
 		$data['entry_test'] = $this->language->get('entry_test');
+
+		$data['ofd_vat_types'] = array(
+			'none' => $this->language->get('entry_ofd_vat_none'),
+			'0' => $this->language->get('entry_ofd_vat_0'),
+			'10' => $this->language->get('entry_ofd_vat_10'),
+			'18' => $this->language->get('entry_ofd_vat_18'),
+			'110' => $this->language->get('entry_ofd_vat_110'),
+			'118' => $this->language->get('entry_ofd_vat_118'),
+		);
 
 		$data['entry_order_status'] = $this->language->get('entry_order_status');
 		$data['entry_order_status_fail'] = $this->language->get('entry_order_status_fail');
@@ -150,6 +161,17 @@ class ControllerExtensionPaymentPlatron extends Controller {
 			$data['platron_order_status_id_fail'] = $this->request->post['platron_order_status_id_fail'];
 		} else {
 			$data['platron_order_status_id_fail'] = $this->config->get('platron_order_status_id_fail');
+		}
+
+		if (isset($this->request->post['platron_ofd_send_receipt'])) {
+			$data['platron_ofd_send_receipt'] = $this->request->post['platron_ofd_send_receipt'];
+		} else {
+			$data['platron_ofd_send_receipt'] = $this->config->get('platron_ofd_send_receipt');
+		}
+		if (isset($this->request->post['platron_ofd_vat'])) {
+			$data['platron_ofd_vat'] = $this->request->post['platron_ofd_vat'];
+		} else {
+			$data['platron_ofd_vat'] = $this->config->get('platron_ofd_vat');
 		}
 
 		$this->load->model('localisation/order_status');

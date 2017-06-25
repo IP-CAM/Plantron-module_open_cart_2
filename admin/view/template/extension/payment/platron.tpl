@@ -138,6 +138,36 @@
               <input type="text" name="platron_sort_order" value="<?php echo $platron_sort_order; ?>"  class="form-control" />			  
             </div>
           </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label"><?php echo $entry_ofd_send_receipt; ?></label>
+            <div class="col-sm-10">
+              <select name="platron_ofd_send_receipt" id="input-ofd-send-receipt" class="form-control">
+                <?php if ($platron_ofd_send_receipt) { ?>
+                <option value="1" selected="selected"><?php echo $text_enabled; ?></option>
+                <option value="0"><?php echo $text_disabled; ?></option>
+                <?php } else { ?>
+                <option value="1"><?php echo $text_enabled; ?></option>
+                <option value="0" selected="selected"><?php echo $text_disabled; ?></option>
+                <?php } ?>
+              </select>
+            </div>          
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label"><?php echo $entry_ofd_vat; ?></label>
+            <div class="col-sm-10">
+              <select name="platron_ofd_vat" id="input-ofd-vat" class="form-control">
+                <?php foreach ($ofd_vat_types as $vat_key => $vat_label) { ?>
+                <?php if ($vat_key == $platron_ofd_vat) { ?>
+                <option value="<?php echo $vat_key; ?>" selected="selected"><?php echo $vat_label; ?></option>
+                <?php } else { ?>
+                <option value="<?php echo $vat_key; ?>"><?php echo $vat_label; ?></option>
+                <?php } ?>
+                <?php } ?>
+              </select>
+            </div>          
+          </div>
+
+          </div>
         </form>
       </div>
     </div>
