@@ -1,25 +1,32 @@
 <?php
 
-class ControllerExtensionPaymentPlatron extends Controller {
+require_once DIR_SYSTEM . '/library/platron/PlatronSignature.php';
+require_once DIR_SYSTEM . '/library/platron/ofd.php';
 
+class ControllerExtensionPaymentPlatron extends Controller {
 	public function index() {
 		$this->language->load('payment/platron');
 
-		$date['button_confirm'] = $this->language->get('button_confirm');
-		$date['button_back'] = $this->language->get('button_back');
+		$data['button_continue'] = $this->language->get('button_confirm');
 
+		$data['continue'] = $this->url->link('extension/payment/platron/confirm', '', true);
+
+		return $this->load->view('extension/payment/platron', $data);
+	}
+
+	public function confirm() {
+		$this->language->load('extension/payment/platron');
 		$this->load->model('account/order');
 		$order_products = $this->model_account_order->getOrderProducts($this->session->data['order_id']);
-		$strOrderDescription = "";
-		foreach ($order_products as $product) {
-			$strOrderDescription .= @$product["name"] . " " . @$product["model"] . "*" . @$product["quantity"] . ";";
-		}
 
-		$this->load->model('extension/payment/platron');
+		$product_descriptions = array();
+		foreach ($order_products as $product) {
+			$product_descriptions[] = @$product["name"] . " " . @$product["model"] . " * " . @$product["quantity"];
+		}
+		$order_description = implode(';', $product_descriptions);
+
 		$this->load->model('checkout/order');
 		$order_info = $this->model_checkout_order->getOrder($this->session->data['order_id']);
-
-		// Настройки
 
 		$merchant_id = $this->config->get('platron_merchant_id');
 		$secret_word = $this->config->get('platron_secret_word');
@@ -28,10 +35,10 @@ class ControllerExtensionPaymentPlatron extends Controller {
 		$arrReq = array(
 			'pg_amount' => (int) $order_info['total'],
 			'pg_check_url' => $this->url->link('extension/payment/platron/check'),
-			'pg_description' => $strOrderDescription,
+			'pg_description' => $order_description,
 			'pg_encoding' => 'UTF-8',
 			'pg_currency' => $order_info['currency_code'],
-			'pg_user_ip' => $_SERVER['REMOTE_ADDR'],
+			//'pg_user_ip' => $_SERVER['REMOTE_ADDR'],
 			'pg_lifetime' => !empty($lifetime) ? $lifetime * 3600 : 86400,
 			'pg_merchant_id' => $merchant_id,
 			'pg_order_id' => $order_info['order_id'],
@@ -47,23 +54,33 @@ class ControllerExtensionPaymentPlatron extends Controller {
 
 		if ($this->config->get('platron_test') == 1) {
 			$arrReq['pg_testing_mode'] = 1;
-			unset($arrReq['pg_currency']);
 		}
 
-		$arrReq['pg_sig'] = $this->model_extension_payment_platron->make('payment.php', $arrReq, $secret_word);
+		$this->load->model('extension/payment/platron');
+		$arrReq['pg_sig'] = $this->model_extension_payment_platron->make('init_payment.php', $arrReq, $secret_word);
 
-		$query = http_build_query($arrReq);
+		$this->load->library('platron/platronClient');
+		$init_payment_response = $this->platronClient->doRequest('https://www.platron.ru/init_payment.php', $arrReq);
 
-		$date['action'] = 'https://platron.ru/payment.php?' . $query;
+		if (!$init_payment_response) {
+			$this->session->data['error'] = $this->language->get('payment_failed');
+			$this->response->redirect($this->url->link('checkout/checkout', '', true));
+		}
 
-		return $this->load->view('extension/payment/platron', $date);
-	}
+		if (!PlatronSignature::checkXML('init_payment.php', $init_payment_response, $secret_word)) {
+			$this->session->data['error'] = $this->language->get('payment_failed');
+			$this->log->write('Platron init_payment response invalid signature');
+			$this->response->redirect($this->url->link('checkout/checkout', '', true));
+		}
 
-	public function confirm() {
-		if ($this->session->data['payment_method']['code'] == 'platron') {
-			$this->load->model('checkout/order');
+		if ($init_payment_response->pg_status == 'error') {
+			$this->session->data['error'] = $this->language->get('payment_failed');
+			$this->log->write('Platron init_payment error: ' . $init_payment_response->pg_error_description);
+			$this->response->redirect($this->url->link('checkout/checkout', '', true));
+		}
 
-			$this->model_checkout_order->addOrderHistory($this->session->data['order_id'], $this->config->get('config_order_status_id'));
+		if ($init_payment_response->pg_status == 'ok') {
+			$this->response->redirect($init_payment_response->pg_redirect_url);
 		}
 	}
 
