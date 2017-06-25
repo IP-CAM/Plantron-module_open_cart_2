@@ -26,8 +26,8 @@ class ControllerExtensionPaymentPlatron extends Controller {
 
 			$ofdReceiptItem = new OfdReceiptItem();
 			$ofdReceiptItem->label = substr(@$product["name"], 0, 128);
-			$ofdReceiptItem->amount = @$product["total"];
-			$ofdReceiptItem->price = @$product["price"];
+			$ofdReceiptItem->amount = @$product["total"] + @$product["tax"] * @$product["quantity"];
+			$ofdReceiptItem->price = @$product["price"] + @$product["tax"];
 			$ofdReceiptItem->quantity = @$product["quantity"];
 			$ofdReceiptItem->vat = $this->config->get('platron_ofd_vat');
 			$ofdReceiptItems[] = $ofdReceiptItem;
@@ -117,9 +117,9 @@ class ControllerExtensionPaymentPlatron extends Controller {
 				$this->response->redirect($this->url->link('checkout/checkout', '', true));
 			}
 
-			if ($init_payment_response->pg_status == 'error') {
+			if ($receipt_response->pg_status == 'error') {
 				$this->session->data['error'] = $this->language->get('payment_failed');
-				$this->log->write('Platron receipt error: ' . $init_payment_response->pg_error_description);
+				$this->log->write('Platron receipt error: ' . $receipt_response->pg_error_description);
 				$this->response->redirect($this->url->link('checkout/checkout', '', true));
 			}
 		}
