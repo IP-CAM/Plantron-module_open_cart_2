@@ -57,7 +57,6 @@ class ControllerExtensionPaymentPlatron extends Controller {
 			'pg_description' => $order_description,
 			'pg_encoding' => 'UTF-8',
 			'pg_currency' => $order_info['currency_code'],
-			//'pg_user_ip' => $_SERVER['REMOTE_ADDR'],
 			'pg_lifetime' => !empty($lifetime) ? $lifetime * 3600 : 86400,
 			'pg_merchant_id' => $merchant_id,
 			'pg_order_id' => $order_info['order_id'],
